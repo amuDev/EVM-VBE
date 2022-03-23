@@ -35,29 +35,46 @@ contract VBC {
             // to specify that this byte is reserved for a value that is currently not being used.
             let ptr := sload(vbs.slot)
             let obc := and(ptr, 0xFF) // load occupied byte count into var
-            let idx := 1
-            // byte buffer
-            let b := 0x0
-            // variable result
-            let v := 0x0
-            let vl := 0x0
-            // variables passed
-            let vc := 0x0
-            // find the v we are looking for and vbd to fetch its val
-            for {} lt(idx, obc) {} {
-                // get the current byte
-                b := shr(ptr, mul(idx, 8))
-                if eq(svar, vc) {
-                    // append the last 7 bits of b to v
-                    v := or(shl(vl, v), shl(1, b))
-                    if gt(b, 0x80) { break }
+            switch obc
+                case 0 { // if we have a fully empyt set ignore action and initalize the val
+                    let v
+
+                    // convert v into how it will actually be stored
+                    for {} gt(num, 127) {v := mod(num, 128)} {
+                        num := div(num, 128)
+                    }
+
+                    let vl := 0x0
+                    for {let b := v} gt(b, 0) {b := shr(1, b)} {
+                        vl := add(vl, 1)
+                    }
+
                 }
-                // if this byte is the end of a var increase our counter
-                if gt(b, 0x80) {
-                    vc := add(vc, 1)
-                    continue
+                default {
+                    let idx := 1
+                    // byte buffer
+                    let b := 0x0
+                    // variable result
+                    let v := 0x0
+                    let vl := 0x0
+                    // variables passed
+                    let vc := 0x0
+                    // find the v we are looking for and vbd to fetch its val
+                    for {} lt(idx, obc) {} {
+                        // get the current byte
+                        b := shr(ptr, mul(idx, 8))
+                        if eq(svar, vc) {
+                            // append the last 7 bits of b to v
+                            v := or(shl(vl, v), shl(1, b))
+                            if gt(b, 0x80) { break }
+                        }
+                        // if this byte is the end of a var increase our counter
+                        if gt(b, 0x80) {
+                            vc := add(vc, 1)
+                            continue
+                        }
+                    }
                 }
-            }
         }
     }
 
