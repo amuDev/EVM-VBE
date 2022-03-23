@@ -2,7 +2,7 @@
 
 ## WIP
  **TODOS**
- - [ ] Decoder (fetch variables from storage)
+ - [X] Decoder (fetch variables from storage)
  - [ ] Encoder (update variables in storage)
  - [ ] Encoder (return a bytes of packed params as a view function)
 
